@@ -16,7 +16,7 @@ namespace recipe_app_api.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateRecipeAsync([FromForm] CreateRecipeDto recipeDto)
+        public async Task<ActionResult> CreateRecipeAsync(CreateRecipeDto recipeDto)
         {
             if (!ModelState.IsValid)
             {
@@ -28,9 +28,23 @@ namespace recipe_app_api.Controllers
             }
             catch (Exception ex)
             {
-                
+
             }
             return Ok();
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<RecipeDto>> GetRecipeById(int id)
+        {
+            
+            var recipe = await _recipeRepository.GetRecipeById(id);
+
+            if (recipe == null)
+            {
+                return NotFound($"Could not find recipe with id: {id}");
+            }
+            return Ok(recipe);
+           
         }
     }
 }

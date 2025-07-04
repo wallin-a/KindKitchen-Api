@@ -2,7 +2,7 @@
 {
     public class IngredientsDto
     {
-        public required string Name { get; set; }
-        public required string Quantity { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Quantity { get; set; } = string.Empty;
     }
 }

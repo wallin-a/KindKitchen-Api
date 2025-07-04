@@ -10,7 +10,7 @@
         public int Servings { get; set; }
         public string? ImageUrl { get; set; }
 
-        public required List<IngredientEntity> Ingredients { get; set; }
-        public required List<StepEntity> Steps { get; set; }
+        public required List<IngredientEntity> Ingredients { get; set; } = new();
+        public required List<StepEntity> Steps { get; set; } = new();
     }
 }

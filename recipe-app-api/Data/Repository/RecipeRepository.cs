@@ -1,4 +1,6 @@
-﻿using recipe_app_api.Data.Entities;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using recipe_app_api.Data.Entities;
 using recipe_app_api.Interfaces;
 using recipe_app_api.Models;
 
@@ -7,10 +9,12 @@ namespace recipe_app_api.Data.Repository
     public class RecipeRepository : IRecipeRepository
     {
         private readonly RecipeDbContext _dbContext;
+        private readonly IMapper _mapper;
 
-        public RecipeRepository(RecipeDbContext dbContext)
+        public RecipeRepository(RecipeDbContext dbContext, IMapper mapper)
         {
             _dbContext = dbContext;
+            _mapper = mapper;
         }
 
         public async Task CreateRecipeAsync(CreateRecipeDto recipeDto)
@@ -20,8 +24,10 @@ namespace recipe_app_api.Data.Repository
             {
                 Title = recipeDto.Title,
                 Category = recipeDto.Category,
+                Description = recipeDto.Description,
                 CookingTime = recipeDto.CookingTime,
                 Servings = recipeDto.Servings,
+                ImageUrl = recipeDto.ImageUrl,
                 Ingredients = new List<IngredientEntity>(),
                 Steps = new List<StepEntity>()
             };
@@ -55,7 +61,17 @@ namespace recipe_app_api.Data.Repository
 
             await _dbContext.SaveChangesAsync();
 
+        }
 
+        public async Task<RecipeDto> GetRecipeById(int id)
+        {
+            var recipe = await _dbContext.Recipes
+                .Include(r => r.Steps)
+                .Include(r => r.Ingredients)
+                .FirstOrDefaultAsync(r => r.Id == id) ?? throw new Exception($"Recipe with Id {id} not found.");
+
+            RecipeDto RecipeDto = _mapper.Map<RecipeDto>(recipe);
+            return RecipeDto;
         }
     }
 }

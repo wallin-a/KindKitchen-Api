@@ -16,6 +16,9 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
 
+builder.Services.AddAutoMapper(typeof(Program));
+
+
 
 var app = builder.Build();
 
