@@ -7,5 +7,6 @@ public interface IRecipeRepository
     Task CreateRecipeAsync(CreateRecipeDto recipeDto);
 
     Task<RecipeDto> GetRecipeById(int id);
+    Task<List<RecipeDto>> GetRecipes();
 
 }

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using recipe_app_api.Data.Entities;
 using recipe_app_api.Interfaces;
@@ -72,6 +73,17 @@ namespace recipe_app_api.Data.Repository
 
             RecipeDto RecipeDto = _mapper.Map<RecipeDto>(recipe);
             return RecipeDto;
+        }
+
+        public async Task<List<RecipeDto>> GetRecipes()
+        {
+            var recipes = await _dbContext.Recipes
+                .Include(r => r.Steps)
+                .Include(r => r.Ingredients)
+                .ProjectTo<RecipeDto>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            return recipes;
         }
     }
 }

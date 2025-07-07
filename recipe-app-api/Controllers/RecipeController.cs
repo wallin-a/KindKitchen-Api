@@ -46,5 +46,16 @@ namespace recipe_app_api.Controllers
             return Ok(recipe);
            
         }
+
+        [HttpGet]
+        public async Task<ActionResult<List<RecipeDto>>> GetRecipes()
+        {
+            var recipes = await _recipeRepository.GetRecipes();
+
+            if (recipes == null)
+                return NotFound("Could not finf recipes");
+
+            return Ok(recipes);
+        }
     }
 }
