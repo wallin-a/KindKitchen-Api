@@ -7,7 +7,6 @@ using Serilog;
 
 
 var builder = WebApplication.CreateBuilder(args);
-Console.WriteLine($"INFO Current environment: {builder.Environment.EnvironmentName}");
 
 // Add services to the container.
 builder.Services.AddDbContext<RecipeDbContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -32,12 +31,6 @@ builder.Services.AddCors(options =>
                   .AllowAnyMethod();
         });
 });
-
-builder.Configuration
-    .SetBasePath(Directory.GetCurrentDirectory())
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-    .AddEnvironmentVariables();
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.File(
