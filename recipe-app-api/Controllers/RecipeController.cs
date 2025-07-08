@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using recipe_app_api.Exceptions;
 using recipe_app_api.Interfaces;
 using recipe_app_api.Models;
 
@@ -37,6 +38,18 @@ namespace recipe_app_api.Controllers
                 _logger.LogError(ex, "Error while creating recipe");
             }
             return Ok();
+        }
+
+        [HttpDelete]
+        public async Task<ActionResult> DeleteRecipe(int id) 
+        {
+            _logger.LogInformation($"INFO Starting deleting recipe with id: {id}");
+
+            var isDeleted = await _recipeRepository.DeleteRecipe(id);
+            if(!isDeleted)
+                return NotFound();
+
+            return NoContent();
         }
 
         [HttpGet("{id}")]

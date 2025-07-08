@@ -2,8 +2,10 @@
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using recipe_app_api.Data.Entities;
+using recipe_app_api.Exceptions;
 using recipe_app_api.Interfaces;
 using recipe_app_api.Models;
+using System.Threading.Tasks;
 
 namespace recipe_app_api.Data.Repository
 {
@@ -73,6 +75,17 @@ namespace recipe_app_api.Data.Repository
 
             RecipeDto RecipeDto = _mapper.Map<RecipeDto>(recipe);
             return RecipeDto;
+        }
+
+        public async Task<bool> DeleteRecipe(int id)
+        {
+            var recipe = await _dbContext.Recipes.FindAsync(id);
+            if (recipe == null)
+                return false;
+
+            _dbContext.Recipes.Remove(recipe);
+            await _dbContext.SaveChangesAsync();
+            return true;
         }
 
         public async Task<List<RecipeDto>> GetRecipes()
