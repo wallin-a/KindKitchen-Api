@@ -35,7 +35,7 @@ namespace recipe_app_api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error while creating recipe");
+                _logger.LogError(ex, "ERROR while creating recipe");
             }
             return Ok();
         }
@@ -45,11 +45,46 @@ namespace recipe_app_api.Controllers
         {
             _logger.LogInformation($"INFO Starting deleting recipe with id: {id}");
 
-            var isDeleted = await _recipeRepository.DeleteRecipe(id);
-            if(!isDeleted)
+            try
+            {
+                await _recipeRepository.DeleteRecipe(id);
+                return NoContent();
+            } catch (NotFoundException ex)
+            {
+                _logger.LogWarning(ex, ex.Message);
                 return NotFound();
+            } catch (Exception ex)
+            {
+                _logger.LogError(ex, "ERROR Unexpected error while deleting recipe with id {Id}", id);
+                return StatusCode(500, "An unexpected error occurred.");
+            }
+        }
 
-            return NoContent();
+        [HttpPut]
+        public async Task<ActionResult> UpdateRecipe([FromBody] RecipeDto recipe)
+        {
+            _logger.LogInformation($"INFO Starting deleting recipe with id: {recipe.Id}");
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                _logger.LogWarning("Validation failed: {Errors}", string.Join(", ", errors));
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                await _recipeRepository.UpdateRecipe(recipe);
+                return NoContent();
+            } catch (NotFoundException ex)
+            {
+                _logger.LogWarning(ex, ex.Message);
+                return NotFound();
+            } catch (Exception ex)
+            {
+                _logger.LogError(ex, "ERROR Unexpected error while updating recipe with id {Id}", recipe.Id);
+                return StatusCode(500, "An unexpected error occurred.");
+            }
         }
 
         [HttpGet("{id}")]
@@ -61,7 +96,7 @@ namespace recipe_app_api.Controllers
 
             if (recipe == null)
             {
-                _logger.LogError("Error Could not fetch recipe by id:" + id);
+                _logger.LogError("ERROR Could not fetch recipe by id:" + id);
 
                 return NotFound($"Could not find recipe with id: {id}");
             }

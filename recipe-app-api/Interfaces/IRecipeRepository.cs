@@ -8,6 +8,7 @@ public interface IRecipeRepository
 
     Task<RecipeDto> GetRecipeById(int id);
     Task<List<RecipeDto>> GetRecipes();
-    Task<bool> DeleteRecipe(int id);
+    Task DeleteRecipe(int id);
+    Task UpdateRecipe(RecipeDto recipeDto);
 
 }

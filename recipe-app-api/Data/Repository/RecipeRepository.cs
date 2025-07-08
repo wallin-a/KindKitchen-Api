@@ -5,7 +5,6 @@ using recipe_app_api.Data.Entities;
 using recipe_app_api.Exceptions;
 using recipe_app_api.Interfaces;
 using recipe_app_api.Models;
-using System.Threading.Tasks;
 
 namespace recipe_app_api.Data.Repository
 {
@@ -68,26 +67,57 @@ namespace recipe_app_api.Data.Repository
 
         public async Task<RecipeDto> GetRecipeById(int id)
         {
-            var recipe = await _dbContext.Recipes
-                .Include(r => r.Steps)
-                .Include(r => r.Ingredients)
-                .FirstOrDefaultAsync(r => r.Id == id) ?? throw new Exception($"Recipe with Id {id} not found.");
+            var recipe = await GetRecipe(id);
 
             RecipeDto RecipeDto = _mapper.Map<RecipeDto>(recipe);
             return RecipeDto;
         }
 
-        public async Task<bool> DeleteRecipe(int id)
+        public async Task DeleteRecipe(int id)
         {
-            var recipe = await _dbContext.Recipes.FindAsync(id);
-            if (recipe == null)
-                return false;
+            var recipe = await GetRecipe(id);
 
             _dbContext.Recipes.Remove(recipe);
             await _dbContext.SaveChangesAsync();
-            return true;
         }
 
+        public async Task UpdateRecipe(RecipeDto recipeDto)
+        {
+            var recipe = await GetRecipe(recipeDto.Id);
+
+            recipe.Title = recipeDto.Title;
+            recipe.Category = recipeDto.Category;
+            recipe.Description = recipeDto.Description;
+            recipe.CookingTime = recipeDto.CookingTime;
+            recipe.Servings = recipeDto.Servings;
+            recipe.ImageUrl = recipeDto.ImageUrl;
+
+            recipe.Ingredients.Clear();
+            foreach (var ingredient in recipeDto.Ingredients)
+            {
+                recipe.Ingredients.Add(new IngredientEntity
+                {
+                    Name = ingredient.Name,
+                    Quantity = ingredient.Quantity,
+                    RecipeId = recipe.Id
+                });
+            }
+
+            recipe.Steps.Clear();
+            int stepNumber = 1;
+            foreach (var step in recipeDto.Steps)
+            {
+                recipe.Steps.Add(new StepEntity
+                {
+                    RecipeId = recipe.Id,
+                    StepNumber = stepNumber,
+                    Instruction = step.Instruction
+                });
+                stepNumber++;
+            }
+
+            await _dbContext.SaveChangesAsync();
+        }
         public async Task<List<RecipeDto>> GetRecipes()
         {
             var recipes = await _dbContext.Recipes
@@ -97,6 +127,14 @@ namespace recipe_app_api.Data.Repository
                 .ToListAsync();
 
             return recipes;
+        }
+
+        private async Task<RecipeEntity>GetRecipe(int id)
+        {
+            return await _dbContext.Recipes
+                .Include(r => r.Steps)
+                .Include(r => r.Ingredients)
+                .FirstOrDefaultAsync(r => r.Id == id) ?? throw new NotFoundException($"Recipe with Id {id} not found.");
         }
     }
 }
