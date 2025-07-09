@@ -1,7 +1,11 @@
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using recipe_app_api.Data;
 using recipe_app_api.Data.Repository;
+using recipe_app_api.Exceptions;
 using recipe_app_api.Interfaces;
+using recipe_app_api.Services;
 using Serilog;
 
 
@@ -19,6 +23,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IRecipeRepository, RecipeRepository>();
+builder.Services.AddScoped<IRecipeService, RecipeService>();
 
 builder.Services.AddAutoMapper(typeof(Program));
 
@@ -49,7 +54,43 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+        var errors = context.ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+        logger.LogWarning("ERROR Model validation failed: {Errors}", string.Join(", ", errors));
+
+        return new BadRequestObjectResult(context.ModelState);
+    };
+});
+
 var app = builder.Build();
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+        context.Response.ContentType = "application/json";
+
+        if (exception is NotFoundException)
+        {
+            logger.LogWarning(exception, "WARNING NotFoundException: {Message}", exception.Message);
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
+            await context.Response.WriteAsync(exception.Message);
+        }
+        else
+        {
+            logger.LogError(exception, "ERROR Unhandled exception occurred while processing request.");
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            await context.Response.WriteAsync("ERROR An unexpected error occurred.");
+        }
+    });
+});
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

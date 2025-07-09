@@ -2,6 +2,7 @@
 using recipe_app_api.Exceptions;
 using recipe_app_api.Interfaces;
 using recipe_app_api.Models;
+using recipe_app_api.Services;
 
 namespace recipe_app_api.Controllers
 {
@@ -9,99 +10,64 @@ namespace recipe_app_api.Controllers
     [Route("[controller]")]
     public class RecipeController : Controller
     {
-        private readonly IRecipeRepository _recipeRepository;
+        private readonly IRecipeService _recipeService;
         private readonly ILogger<RecipeController> _logger;
-
-        public RecipeController(IRecipeRepository recipeRepository, ILogger<RecipeController> logger)
+        
+        public RecipeController(IRecipeService recipeService, ILogger<RecipeController> logger)
         {
-            _recipeRepository = recipeRepository;
+            _recipeService = recipeService;
             _logger = logger;
         }
 
         [HttpPost]
         public async Task<ActionResult> CreateRecipeAsync([FromBody] CreateRecipeDto recipeDto)
         {
-            _logger.LogInformation("INFO Starting creating new recipe");
+            _logger.LogInformation("INFO Starting creation of new recipe");
 
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                _logger.LogWarning("Validation failed: {Errors}", string.Join(", ", errors));
-                return BadRequest(ModelState);
-            }
-            try
-            {
-                await _recipeRepository.CreateRecipeAsync(recipeDto);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "ERROR while creating recipe");
-            }
-            return Ok();
+            var createdRecipeId = await _recipeService.CreateRecipeAsync(recipeDto);
+
+            _logger.LogInformation("INFO Successfully created recipe with id: {Id}", createdRecipeId);
+
+            return CreatedAtAction(nameof(GetRecipeById), new { id = createdRecipeId }, null);
         }
 
         [HttpDelete]
-        public async Task<ActionResult> DeleteRecipe(int id) 
+        public async Task<IActionResult> DeleteRecipe(int id)
         {
-            _logger.LogInformation($"INFO Starting deleting recipe with id: {id}");
+            _logger.LogInformation("INFO Starting deleting recipe with id: {Id}", id);
 
-            try
-            {
-                await _recipeRepository.DeleteRecipe(id);
-                return NoContent();
-            } catch (NotFoundException ex)
-            {
-                _logger.LogWarning(ex, ex.Message);
-                return NotFound();
-            } catch (Exception ex)
-            {
-                _logger.LogError(ex, "ERROR Unexpected error while deleting recipe with id {Id}", id);
-                return StatusCode(500, "An unexpected error occurred.");
-            }
+            await _recipeService.DeleteRecipeAsync(id);
+
+            _logger.LogInformation("INFO Successfully deleted recipe with id: {Id}", id);
+
+            return NoContent();
         }
 
-        [HttpPut]
-        public async Task<ActionResult> UpdateRecipe([FromBody] RecipeDto recipe)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateRecipe(int id, [FromBody] RecipeDto recipeDto)
         {
-            _logger.LogInformation($"INFO Starting deleting recipe with id: {recipe.Id}");
+            _logger.LogInformation("INFO Starting update for recipe with id: {Id}", id);
 
-            if (!ModelState.IsValid)
+            if (id != recipeDto.Id)
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                _logger.LogWarning("Validation failed: {Errors}", string.Join(", ", errors));
-                return BadRequest(ModelState);
+                _logger.LogWarning("WARNING ID mismatch: URL id {Id} does not match body id {BodyId}", id, recipeDto.Id);
+                return BadRequest($"ID in URL ({id}) does not match ID in body ({recipeDto.Id}).");
             }
 
-            try
-            {
-                await _recipeRepository.UpdateRecipe(recipe);
-                return NoContent();
-            } catch (NotFoundException ex)
-            {
-                _logger.LogWarning(ex, ex.Message);
-                return NotFound();
-            } catch (Exception ex)
-            {
-                _logger.LogError(ex, "ERROR Unexpected error while updating recipe with id {Id}", recipe.Id);
-                return StatusCode(500, "An unexpected error occurred.");
-            }
+            await _recipeService.UpdateRecipeAsync(recipeDto);
+
+            _logger.LogInformation("INFO Successfully updated recipe with id: {Id}", id);
+
+            return NoContent();
         }
+
 
         [HttpGet("{id}")]
         public async Task<ActionResult<RecipeDto>> GetRecipeById(int id)
         {
             _logger.LogInformation("INFO Starting fetching recipe by id:" + id);
 
-            var recipe = await _recipeRepository.GetRecipeById(id);
-
-            if (recipe == null)
-            {
-                _logger.LogError("ERROR Could not fetch recipe by id:" + id);
-
-                return NotFound($"Could not find recipe with id: {id}");
-            }
-
-            _logger.LogInformation($"INFO found recipe: {recipe.Id}, {recipe.Title}");
+            var recipe = await _recipeService.GetRecipeById(id);
 
             return Ok(recipe);
            
@@ -110,10 +76,7 @@ namespace recipe_app_api.Controllers
         [HttpGet]
         public async Task<ActionResult<List<RecipeDto>>> GetRecipes()
         {
-            var recipes = await _recipeRepository.GetRecipes();
-
-            if (recipes == null)
-                return NotFound("Could not finf recipes");
+            var recipes = await _recipeService.GetAllRecipes();
 
             return Ok(recipes);
         }
