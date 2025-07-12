@@ -7,13 +7,11 @@
 
         public string? Description { get; set; }
 
-        public string Category { get; set; } = string.Empty;
 
-        public int CookingTime { get; set; }
+        public TimeSpan CookingTime { get; set; }
 
         public int Servings { get; set; }
-
-        public string? ImageUrl { get; set; }
+        public List<CategoryDto> Categories { get; set; } = new();
 
         public List<StepDto> Steps { get; set; } = new();
 

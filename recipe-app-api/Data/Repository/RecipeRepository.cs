@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using recipe_app_api.Data.Entities;
 using recipe_app_api.Interfaces;
 
@@ -34,6 +33,7 @@ namespace recipe_app_api.Data.Repository
         public async Task<List<RecipeEntity>> GetAllAsync()
         {
             var recipes = await _dbContext.Recipes
+                .Include(r => r.Categories)
                 .Include(r => r.Steps)
                 .Include(r => r.Ingredients)
                 .ToListAsync();
@@ -44,9 +44,11 @@ namespace recipe_app_api.Data.Repository
         public async Task<RecipeEntity?> GetByIdAsync(int id)
         {
             return await _dbContext.Recipes
+                .Include(r => r.Categories)
                 .Include(r => r.Steps)
                 .Include(r => r.Ingredients)
                 .FirstOrDefaultAsync(r => r.Id == id);
         }
+
     }
 }

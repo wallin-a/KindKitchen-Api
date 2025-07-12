@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using recipe_app_api.Exceptions;
 using recipe_app_api.Interfaces;
 using recipe_app_api.Models;
-using recipe_app_api.Services;
 
 namespace recipe_app_api.Controllers
 {
@@ -20,7 +18,7 @@ namespace recipe_app_api.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateRecipeAsync([FromBody] CreateRecipeDto recipeDto)
+        public async Task<ActionResult> CreateRecipeAsync([FromForm] CreateRecipeDto recipeDto)
         {
             _logger.LogInformation("INFO Starting creation of new recipe");
 
@@ -44,7 +42,7 @@ namespace recipe_app_api.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateRecipe(int id, [FromBody] RecipeDto recipeDto)
+        public async Task<IActionResult> UpdateRecipe(int id, [FromBody] UpdateRecipeDto recipeDto)
         {
             _logger.LogInformation("INFO Starting update for recipe with id: {Id}", id);
 

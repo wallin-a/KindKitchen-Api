@@ -15,6 +15,8 @@ namespace recipe_app_api.Data
         public DbSet<RecipeEntity> Recipes { get; set; }
         public DbSet<IngredientEntity> Ingredients { get; set; }
         public DbSet<StepEntity> Steps { get; set; }
+        public DbSet<CategoryEntity> Categories { get; set; }
+        public DbSet<RecipeImageEntity> RecipeImages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -29,6 +31,10 @@ namespace recipe_app_api.Data
                 .HasMany(r => r.Ingredients)
                 .WithOne()
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<RecipeEntity>()
+                .HasMany(r => r.Categories)
+                .WithMany(c => c.Recipes);
 
         }
     }

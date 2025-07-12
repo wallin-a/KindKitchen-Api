@@ -8,6 +8,7 @@ namespace recipe_app_api.Interfaces
         Task<RecipeDto> GetRecipeById(int id);
         Task<List<RecipeDto>> GetAllRecipes();
         Task DeleteRecipeAsync(int id);
-        Task UpdateRecipeAsync(RecipeDto recipeDto);
+        Task UpdateRecipeAsync(UpdateRecipeDto recipeDto);
+        Task<string> GetImageAsync(int recipeId);
     }
 }
