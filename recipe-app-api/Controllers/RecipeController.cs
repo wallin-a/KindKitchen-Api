@@ -42,7 +42,7 @@ namespace recipe_app_api.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateRecipe(int id, [FromBody] UpdateRecipeDto recipeDto)
+        public async Task<IActionResult> UpdateRecipe(int id, [FromForm] UpdateRecipeDto recipeDto)
         {
             _logger.LogInformation("INFO Starting update for recipe with id: {Id}", id);
 
