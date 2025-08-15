@@ -8,6 +8,9 @@ namespace recipe_app_api.Mapping
         public CategoryProfile() { 
         
             CreateMap<CategoryEntity, CategoryDto>();
+            CreateMap<CategoryEntity, CategoryWithRecipesDto>()
+                .ForMember(dest => dest.Recipes,
+                    opt => opt.MapFrom(src => src.Recipes));
         }
     }
 }

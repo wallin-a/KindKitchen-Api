@@ -8,6 +8,7 @@ namespace recipe_app_api.Data.Repository
     {
         Task AddAsync(CategoryEntity categoryEntity);
         Task<CategoryEntity?> GetByIdAsync(int id);
+        Task<CategoryEntity?> GetWithRecipesAsync(int id);
         Task SaveChangesAsync();
         Task<List<CategoryEntity>> GetAllAsync();
         Task DeleteAsync(CategoryEntity categoryEntity);
@@ -57,5 +58,14 @@ namespace recipe_app_api.Data.Repository
                                     .ToListAsync();
             return categories;
         }
-}
+
+        public async Task<CategoryEntity?> GetWithRecipesAsync(int id)
+        {
+            var categoryWithRecipes = await _dbContext.Categories
+                .Include(c => c.Recipes)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            return categoryWithRecipes;
+        }
+    }
 }

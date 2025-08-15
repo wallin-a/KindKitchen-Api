@@ -70,6 +70,16 @@ namespace recipe_app_api.Controllers
             return Ok(category);
         }
 
+        [HttpGet("{id}/with-recipes")]
+        public async Task<ActionResult<CategoryWithRecipesDto>> GetCategoryWithRecipes(int id)
+        {
+            _logger.LogInformation("INFO Starting fetching category by id:" + id);
+
+            var category = await _service.GetWithRecipes(id);
+
+            return Ok(category);
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetCategories()
         {

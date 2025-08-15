@@ -10,5 +10,6 @@ namespace recipe_app_api.Interfaces
         Task DeleteAsync(int id);
         Task UpdateAsync(CategoryDto categoryDto);
         Task<List<CategoryDto>> GetCategoriesByIdsAsync(List<int> categoryIds);
+        Task<CategoryWithRecipesDto> GetWithRecipes(int id);
     }
 }

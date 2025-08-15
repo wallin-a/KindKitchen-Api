@@ -49,6 +49,14 @@ namespace recipe_app_api.Services
             return _mapper.Map<CategoryDto>(category);
         }
 
+        public async Task<CategoryWithRecipesDto> GetWithRecipes(int id)
+        {
+            var category = await _repository.GetWithRecipesAsync(id)
+                ?? throw new NotFoundException($"Category with id: {id} could not be found");
+
+            return _mapper.Map<CategoryWithRecipesDto>(category);
+        }
+
         public async Task UpdateAsync(CategoryDto categoryDto)
         {
             var category = await _repository.GetByIdAsync(categoryDto.Id)
